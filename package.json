@@ -1,6 +1,17 @@
 {
   "name": "npwb",
   "version": "0.0.1",
+  "description": "No Pain Web Builder",
+  "keywords": [
+    "build",
+    "watch",
+    "bundle",
+    "compile",
+    "copy"
+  ],
+  "author": "Pierre-David Bélanger <pierredavidbelanger@gmail.com>",
+  "license": "MIT",
+  "repository": "https://github.com/pierredavidbelanger/npwb",
   "bin": {
     "npwb": "npwb.js"
   },
