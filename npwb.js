@@ -41,6 +41,28 @@ const copyWithCpx = function (type, glob, options) {
     }
 };
 
+const globAndWatch = function (type, inPattern, callback) {
+    const glob = require('glob');
+    const pattern = path.resolve(indir, inPattern);
+    glob(pattern, function (err, matches) {
+        if (err) {
+            console.error(`[${type}] invalid pattern '${pattern}': ${err}`);
+            process.exit(-1);
+        }
+        matches.forEach(callback);
+    });
+    if (argv.watch) {
+        const gaze = require('gaze');
+        gaze(pattern, function (err) {
+            if (err) {
+                console.error(`[${type}] unable to watch: ${err}`);
+                process.exit(-1);
+            }
+            this.on('changed', callback);
+        });
+    }
+};
+
 if (argv.html) {
     const options = {};
     if (argv.minify) {
@@ -125,12 +147,14 @@ if (argv.sass) {
         }, function (err, res) {
             if (err) {
                 console.error(`[ sass] unable to render ${file} into ${outFile}: ${err}`);
-                process.exit(-1);
+                // process.exit(-1);
+                return;
             }
             fs.writeFile(outFile, res.css, function (err) {
                 if (err) {
                     console.error(`[ sass] unable to write unto ${outFile}: ${err}`);
-                    process.exit(-1);
+                    // process.exit(-1);
+                    return;
                 }
                 if (argv.verbose) {
                     console.log(`[ sass] rendered: ${file} -> ${outFile}`);
@@ -138,25 +162,38 @@ if (argv.sass) {
             });
         });
     };
-    const glob = require('glob');
-    const pattern = path.resolve(indir, argv.sass);
-    glob(pattern, function (err, matches) {
-        if (err) {
-            console.error(`[ sass] invalid pattern '${pattern}': ${err}`);
-            process.exit(-1);
-        }
-        matches.forEach(render);
-    });
-    if (argv.watch) {
-        const gaze = require('gaze');
-        gaze(pattern, function (err) {
+    globAndWatch(' sass', argv.sass, render);
+}
+
+if (argv.less) {
+    const render = function (filepath) {
+        const file = path.resolve(filepath);
+        const baseFile = path.basename(filepath, path.extname(filepath));
+        const outFile = path.resolve(outdir, baseFile + '.css');
+        const options = {
+            compress: argv.minify
+        };
+        const input = fs.readFileSync(file, 'utf-8');
+        const less = require('less');
+        less.render(input, options, function (err, res) {
             if (err) {
-                console.error(`[ sass] unable to watch: ${err}`);
-                process.exit(-1);
+                console.error(`[ less] unable to render ${file} into ${outFile}: ${err}`);
+                // process.exit(-1);
+                return;
             }
-            this.on('changed', render);
+            fs.writeFile(outFile, res.css, function (err) {
+                if (err) {
+                    console.error(`[ less] unable to write unto ${outFile}: ${err}`);
+                    // process.exit(-1);
+                    return;
+                }
+                if (argv.verbose) {
+                    console.log(`[ less] rendered: ${file} -> ${outFile}`);
+                }
+            });
         });
-    }
+    };
+    globAndWatch(' sass', argv.less, render);
 }
 
 if (argv.serve) {
