@@ -203,7 +203,7 @@ if (argv.serve) {
         root: outdir,
         cache: 1
     });
-    server.listen(port, 'localhost', function () {
+    server.listen(port, '0.0.0.0', function () {
         if (argv.verbose) {
             console.log(`[serve] serving: ${outdir} -> localhost:${port}`);
         }
