@@ -3,6 +3,7 @@
 const minimist = require('minimist');
 
 const fs = require('fs');
+const mkdirp = require('mkdirp');
 const path = require('path');
 
 const argv = minimist(process.argv.slice(2));
@@ -22,8 +23,9 @@ const outdir = path.resolve(argv.outdir);
 if (argv.clean) {
     const del = require('del');
     del.sync(outdir);
-    fs.mkdirSync(outdir);
 }
+
+mkdirp.sync(outdir);
 
 const copyWithCpx = function (type, glob, options) {
     const _cpx = require('cpx');
