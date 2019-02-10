@@ -66,11 +66,26 @@ const globAndWatch = function (type, inPattern, callback) {
 };
 
 if (argv.html) {
+    const through2 = require('through2');
+    const processEnvRE = /\{\{process\.env\.(.+?)\}\}/g;
     const options = {};
+    options.transform = [];
+    options.transform.push(function () {
+        let data = '';
+        return through2(function (chunk, _, callback) {
+            data += chunk.toString();
+            callback();
+        }, function (callback) {
+            data = data.replace(processEnvRE, function (expr, g1) {
+                return process.env[g1] || '';
+            });
+            this.push(data);
+            callback();
+        });
+    });
     if (argv.minify) {
-        const through2 = require('through2');
         const minify = require('html-minifier').minify;
-        options.transform = function () {
+        options.transform.push(function () {
             let data = '';
             return through2(function (chunk, _, callback) {
                 data += chunk.toString();
@@ -80,7 +95,7 @@ if (argv.html) {
                 this.push(data);
                 callback();
             });
-        };
+        });
     }
     copyWithCpx(' html', argv.html, options);
 }
@@ -93,11 +108,13 @@ if (argv.js) {
     const compile = function (filepath) {
         const browserify = require('browserify');
         const babelify = require('babelify');
+        const envify = require('envify');
         const presetenv = require('babel-preset-env');
         const entry = path.resolve(filepath);
         const baseFile = path.basename(filepath, path.extname(filepath));
         const outFile = path.resolve(outdir, baseFile + '.js');
         const b = browserify(entry, {cache: {}, packageCache: {}});
+        b.transform(envify);
         const babelifyOptions = {presets: [presetenv], plugins: []};
         if (argv.minify) {
             const angularjsannotate = require('babel-plugin-angularjs-annotate');
