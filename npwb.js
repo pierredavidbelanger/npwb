@@ -95,7 +95,7 @@ if (argv.html) {
                     callback();
                 }, function (callback) {
                     const thisStream = this;
-                    juice.juiceResources(data, {}, function (err, data) {
+                    juice.juiceResources(data, {webResources: {relativeTo: indir}}, function (err, data) {
                         if (err) {
                             console.error(`[ html] unable to inline CSS from ${filepath}: ${err}`);
                         } else {
