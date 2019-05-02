@@ -83,6 +83,32 @@ if (argv.html) {
             callback();
         });
     });
+    if (argv['inline-css']) {
+        const glob = require('glob');
+        const juice = require('juice');
+        const inlineCssFilepaths = glob.sync(path.resolve(indir, argv['inline-css']));
+        options.transform.push(function (filepath) {
+            if (inlineCssFilepaths.includes(path.resolve(filepath))) {
+                let data = '';
+                return through2(function (chunk, _, callback) {
+                    data += chunk.toString();
+                    callback();
+                }, function (callback) {
+                    const thisStream = this;
+                    juice.juiceResources(data, {}, function (err, data) {
+                        if (err) {
+                            console.error(`[ html] unable to inline CSS from ${filepath}: ${err}`);
+                        } else {
+                            thisStream.push(data);
+                        }
+                        callback();
+                    });
+                });
+            } else {
+                return through2();
+            }
+        });
+    }
     if (argv.minify) {
         const minify = require('html-minifier').minify;
         options.transform.push(function () {
