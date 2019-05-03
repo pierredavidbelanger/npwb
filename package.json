@@ -1,6 +1,6 @@
 {
   "name": "npwb",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "No Pain Web Builder",
   "keywords": [
     "build",
@@ -32,9 +32,9 @@
     "less": "^3.0.4",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "node-sass": "^4.9.0",
-    "through2": "^3.0.0",
+    "node-sass": "^4.12.0",
+    "through2": "^3.0.1",
     "uglifyify": "^5.0.0",
-    "watchify": "^3.11.0"
+    "watchify": "^3.11.1"
   }
 }
