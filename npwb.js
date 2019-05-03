@@ -242,7 +242,7 @@ if (argv.less) {
 }
 
 if (argv.serve) {
-    const httpServer = require('http-server');
+    const httpServer = require('http-server-legacy');
     const port = parseInt(argv.serve) || 8080;
     const server = httpServer.createServer({
         root: outdir,
