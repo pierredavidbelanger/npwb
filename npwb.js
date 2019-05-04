@@ -137,8 +137,8 @@ if (argv.js) {
         const envify = require('envify');
         const presetenv = require('babel-preset-env');
         const entry = path.resolve(filepath);
-        const baseFile = path.basename(filepath, path.extname(filepath));
-        const outFile = path.resolve(outdir, baseFile + '.js');
+        const outFile = path.resolve(outdir, path.relative(indir, filepath));
+        mkdirp.sync(path.dirname(outFile));
         const b = browserify(entry, {cache: {}, packageCache: {}});
         b.transform(envify);
         const babelifyOptions = {presets: [presetenv], plugins: []};
@@ -181,8 +181,8 @@ if (argv.js) {
 if (argv.sass) {
     const render = function (filepath) {
         const file = path.resolve(filepath);
-        const baseFile = path.basename(filepath, path.extname(filepath));
-        const outFile = path.resolve(outdir, baseFile + '.css');
+        const outFile = path.resolve(outdir, path.relative(indir, filepath));
+        mkdirp.sync(path.dirname(outFile));
         const outputStyle = argv.minify ? 'compressed' : 'expanded';
         const sass = require('node-sass');
         sass.render({
@@ -213,8 +213,8 @@ if (argv.sass) {
 if (argv.less) {
     const render = function (filepath) {
         const file = path.resolve(filepath);
-        const baseFile = path.basename(filepath, path.extname(filepath));
-        const outFile = path.resolve(outdir, baseFile + '.css');
+        const outFile = path.resolve(outdir, path.relative(indir, filepath));
+        mkdirp.sync(path.dirname(outFile));
         const options = {
             compress: argv.minify
         };
