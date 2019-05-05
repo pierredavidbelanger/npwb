@@ -97,13 +97,18 @@ if (argv.html) {
         const inlineCssFilepaths = glob.sync(path.resolve(indir, argv['inline-css']));
         options.transform.push(function (filepath) {
             if (inlineCssFilepaths.includes(path.resolve(filepath))) {
+                const juiceOptions = {
+                    webResources: {
+                        relativeTo: path.dirname(makeOutFile(filepath, ".html"))
+                    }
+                };
                 let data = '';
                 return through2(function (chunk, _, callback) {
                     data += chunk.toString();
                     callback();
                 }, function (callback) {
                     const thisStream = this;
-                    juice.juiceResources(data, {webResources: {relativeTo: indir}}, function (err, data) {
+                    juice.juiceResources(data, juiceOptions, function (err, data) {
                         if (err) {
                             console.error(`[ html] unable to inline CSS from ${filepath}:`, err);
                         } else {
@@ -186,7 +191,6 @@ if (argv.js) {
 
 if (argv.sass) {
     const render = function (filepath) {
-        console.log('filepath', filepath);
         const outFile = makeOutFile(filepath, '.css');
         const outputStyle = argv.minify ? 'compressed' : 'expanded';
         const sass = require('node-sass');
