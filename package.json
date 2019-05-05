@@ -1,6 +1,6 @@
 {
   "name": "npwb",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "No Pain Web Builder",
   "keywords": [
     "build",
@@ -26,14 +26,15 @@
     "envify": "^4.1.0",
     "gaze": "^1.1.2",
     "glob": "^7.1.2",
-    "html-minifier": "^3.5.15",
     "http-server-legacy": "^0.11.1",
     "juice": "^5.2.0",
     "less": "^3.0.4",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "node-sass": "^4.9.0",
-    "through2": "^3.0.1",
+    "posthtml": "^0.11.3",
+    "posthtml-inline-assets": "^3.0.0",
+    "posthtml-minifier": "^0.1.0",
     "uglifyify": "^5.0.0",
     "watchify": "^3.11.1"
   }

@@ -74,69 +74,121 @@ const makeOutFile = function (inFile, outExtname) {
 };
 
 if (argv.html) {
-    const through2 = require('through2');
-    const processEnvRE = /\{\{process\.env\.(.+?)\}\}/g;
-    const options = {};
-    options.transform = [];
-    options.transform.push(function () {
-        let data = '';
-        return through2(function (chunk, _, callback) {
-            data += chunk.toString();
-            callback();
-        }, function (callback) {
-            data = data.replace(processEnvRE, function (expr, g1) {
+    globAndWatch(' html', argv.html, function (inFile) {
+
+        const outFile = makeOutFile(inFile, '.html');
+
+        const dataInlineAsset = {
+            resolve: function (node) {
+                return node.tag === 'link' && node.attrs && node.attrs['data-inline-asset'] === 'true' && node.attrs.href;
+            },
+            transform: function (node, {buffer, from}) {
+                delete node.attrs['data-inline-asset'];
+                if (path.extname(from) === '.scss') {
+                    return new Promise(function (resolve, reject) {
+                        const sass = require('node-sass');
+                        sass.render({
+                            data: buffer.toString('utf8'),
+                            includePaths: [path.dirname(from)],
+                            outFile: makeOutFile(from, '.css'),
+                            outputStyle: argv.minify ? 'compressed' : 'expanded'
+                        }, function (err, res) {
+                            if (err) {
+                                return reject(err);
+                            }
+                            if (argv.verbose) {
+                                console.log(`[ html] rendered and inline sass asset: ${from} -> ${outFile}`);
+                            }
+                            delete node.attrs.href;
+                            delete node.attrs.rel;
+                            node.tag = 'style';
+                            node.content = [res.css.toString('utf8')];
+                            resolve();
+                        });
+                    });
+                }
+            }
+        };
+
+        const noopTransform = {
+            resolve: function () {
+                return false;
+            }
+        };
+
+        const posthtmlPlugins = [];
+
+        posthtmlPlugins.push(require('posthtml-inline-assets')({
+            cwd: path.dirname(inFile),
+            transforms: {
+                image: noopTransform,
+                script: noopTransform,
+                style: noopTransform,
+                dataInlineAsset
+            }
+        }));
+
+        posthtmlPlugins.push(function (tree) {
+            const render = require('posthtml-render');
+            const parser = require('posthtml-parser');
+            let html = render(tree);
+            html = html.replace(/\{\{process\.env\.(.+?)\}\}/g, function (expr, g1) {
                 return process.env[g1] || '';
             });
-            this.push(data);
-            callback();
+            tree = parser(html);
+            return tree;
         });
-    });
-    if (argv['inline-css']) {
-        const glob = require('glob');
-        const juice = require('juice');
-        const inlineCssFilepaths = glob.sync(path.resolve(indir, argv['inline-css']));
-        options.transform.push(function (filepath) {
-            if (inlineCssFilepaths.includes(path.resolve(filepath))) {
-                const juiceOptions = {
-                    webResources: {
-                        relativeTo: path.dirname(makeOutFile(filepath, ".html"))
-                    }
-                };
-                let data = '';
-                return through2(function (chunk, _, callback) {
-                    data += chunk.toString();
-                    callback();
-                }, function (callback) {
-                    const thisStream = this;
-                    juice.juiceResources(data, juiceOptions, function (err, data) {
-                        if (err) {
-                            console.error(`[ html] unable to inline CSS from ${filepath}:`, err);
-                        } else {
-                            thisStream.push(data);
-                        }
-                        callback();
-                    });
-                });
-            } else {
-                return through2();
+
+        posthtmlPlugins.push(function (tree) {
+            let inlineStyle = false;
+            tree.match({tag: 'html'}, function (node) {
+                if (node.attrs && node.attrs['data-inline-style'] === 'true') {
+                    delete node.attrs['data-inline-style'];
+                    inlineStyle = true;
+                }
+                return node;
+            });
+            if (inlineStyle) {
+                const render = require('posthtml-render');
+                const parser = require('posthtml-parser');
+                const juice = require('juice');
+                let html = render(tree);
+                html = juice(html);
+                if (argv.verbose) {
+                    console.log(`[ html] inline style node into style attr: ${outFile}`);
+                }
+                tree = parser(html);
             }
+            return tree;
         });
-    }
-    if (argv.minify) {
-        const minify = require('html-minifier').minify;
-        options.transform.push(function () {
-            let data = '';
-            return through2(function (chunk, _, callback) {
-                data += chunk.toString();
-                callback();
-            }, function (callback) {
-                data = minify(data, {collapseWhitespace: true});
-                this.push(data);
-                callback();
+
+        if (argv.minify) {
+            posthtmlPlugins.push(require('posthtml-minifier')({
+                collapseWhitespace: true,
+                removeComments: true,
+                minifyCSS: true
+            }));
+        }
+
+        const posthtml = require('posthtml')(posthtmlPlugins);
+
+        const input = fs.readFileSync(inFile, 'utf-8');
+
+        posthtml.process(input).then(function (result) {
+
+            const output = result.html;
+
+            fs.writeFile(outFile, output, function (err) {
+                if (err) {
+                    console.error(`[ html] unable to write unto ${outFile}:`, err);
+                    return;
+                }
+                if (argv.verbose) {
+                    console.log(`[ html] processed: ${inFile} -> ${outFile}`);
+                }
             });
         });
-    }
-    copyWithCpx(' html', argv.html, options);
+    });
 }
 
 if (argv.raw) {
