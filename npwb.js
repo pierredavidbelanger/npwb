@@ -48,7 +48,7 @@ const globAndWatch = function (type, inPattern, callback) {
     const pattern = path.resolve(indir, inPattern);
     glob(pattern, function (err, matches) {
         if (err) {
-            console.error(`[${type}] invalid pattern '${pattern}': ${err}`);
+            console.error(`[${type}] invalid pattern '${pattern}':`, err);
             process.exit(-1);
         }
         matches.forEach(callback);
@@ -57,12 +57,20 @@ const globAndWatch = function (type, inPattern, callback) {
         const gaze = require('gaze');
         gaze(pattern, function (err) {
             if (err) {
-                console.error(`[${type}] unable to watch: ${err}`);
+                console.error(`[${type}] unable to watch:`, err);
                 process.exit(-1);
             }
             this.on('changed', callback);
         });
     }
+};
+
+const makeOutFile = function (inFile, outExtname) {
+    const outInFile = path.resolve(outdir, path.relative(indir, inFile));
+    const outDir = path.dirname(outInFile);
+    mkdirp.sync(outDir);
+    const outFileBasename = path.basename(outInFile, path.extname(outInFile));
+    return path.resolve(outDir, outFileBasename + outExtname);
 };
 
 if (argv.html) {
@@ -97,7 +105,7 @@ if (argv.html) {
                     const thisStream = this;
                     juice.juiceResources(data, {webResources: {relativeTo: indir}}, function (err, data) {
                         if (err) {
-                            console.error(`[ html] unable to inline CSS from ${filepath}: ${err}`);
+                            console.error(`[ html] unable to inline CSS from ${filepath}:`, err);
                         } else {
                             thisStream.push(data);
                         }
@@ -136,10 +144,8 @@ if (argv.js) {
         const babelify = require('babelify');
         const envify = require('envify');
         const presetenv = require('babel-preset-env');
-        const entry = path.resolve(filepath);
-        const outFile = path.resolve(outdir, path.relative(indir, filepath));
-        mkdirp.sync(path.dirname(outFile));
-        const b = browserify(entry, {cache: {}, packageCache: {}});
+        const outFile = makeOutFile(filepath, '.js');
+        const b = browserify(filepath, {cache: {}, packageCache: {}});
         b.transform(envify);
         const babelifyOptions = {presets: [presetenv], plugins: []};
         if (argv.minify) {
@@ -160,7 +166,7 @@ if (argv.js) {
             const s = b.bundle().pipe(fs.createWriteStream(outFile));
             if (argv.verbose) {
                 s.on('finish', function () {
-                    console.log(`[   js] compiled: ${entry} -> ${outFile}`);
+                    console.log(`[   js] compiled: ${filepath} -> ${outFile}`);
                 });
             }
         };
@@ -171,7 +177,7 @@ if (argv.js) {
     const pattern = path.resolve(indir, argv.js);
     glob(pattern, function (err, matches) {
         if (err) {
-            console.error(`[   js] invalid pattern '${pattern}': ${err}`);
+            console.error(`[   js] invalid pattern '${pattern}':`, err);
             process.exit(-1);
         }
         matches.forEach(compile);
@@ -180,29 +186,28 @@ if (argv.js) {
 
 if (argv.sass) {
     const render = function (filepath) {
-        const file = path.resolve(filepath);
-        const outFile = path.resolve(outdir, path.relative(indir, filepath));
-        mkdirp.sync(path.dirname(outFile));
+        console.log('filepath', filepath);
+        const outFile = makeOutFile(filepath, '.css');
         const outputStyle = argv.minify ? 'compressed' : 'expanded';
         const sass = require('node-sass');
         sass.render({
-            file,
+            file: filepath,
             outFile,
             outputStyle
         }, function (err, res) {
             if (err) {
-                console.error(`[ sass] unable to render ${file} into ${outFile}: ${err}`);
+                console.error(`[ sass] unable to render ${filepath} into ${outFile}:`, err);
                 // process.exit(-1);
                 return;
             }
             fs.writeFile(outFile, res.css, function (err) {
                 if (err) {
-                    console.error(`[ sass] unable to write unto ${outFile}: ${err}`);
+                    console.error(`[ sass] unable to write unto ${outFile}:`, err);
                     // process.exit(-1);
                     return;
                 }
                 if (argv.verbose) {
-                    console.log(`[ sass] rendered: ${file} -> ${outFile}`);
+                    console.log(`[ sass] rendered: ${filepath} -> ${outFile}`);
                 }
             });
         });
@@ -212,28 +217,26 @@ if (argv.sass) {
 
 if (argv.less) {
     const render = function (filepath) {
-        const file = path.resolve(filepath);
-        const outFile = path.resolve(outdir, path.relative(indir, filepath));
-        mkdirp.sync(path.dirname(outFile));
+        const outFile = makeOutFile(filepath, '.css');
         const options = {
             compress: argv.minify
         };
-        const input = fs.readFileSync(file, 'utf-8');
+        const input = fs.readFileSync(filepath, 'utf-8');
         const less = require('less');
         less.render(input, options, function (err, res) {
             if (err) {
-                console.error(`[ less] unable to render ${file} into ${outFile}: ${err}`);
+                console.error(`[ less] unable to render ${filepath} into ${outFile}:`, err);
                 // process.exit(-1);
                 return;
             }
             fs.writeFile(outFile, res.css, function (err) {
                 if (err) {
-                    console.error(`[ less] unable to write unto ${outFile}: ${err}`);
+                    console.error(`[ less] unable to write unto ${outFile}:`, err);
                     // process.exit(-1);
                     return;
                 }
                 if (argv.verbose) {
-                    console.log(`[ less] rendered: ${file} -> ${outFile}`);
+                    console.log(`[ less] rendered: ${filepath} -> ${outFile}`);
                 }
             });
         });
