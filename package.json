@@ -28,7 +28,7 @@
     "gaze": "^1.1.2",
     "glob": "^7.1.6",
     "http-server-legacy": "^0.11.1",
-    "juice": "^5.2.0",
+    "juice": "^6.0.0",
     "less": "^3.10.3",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
