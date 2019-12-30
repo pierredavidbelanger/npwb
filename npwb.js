@@ -202,7 +202,7 @@ if (argv.js) {
         const browserify = require('browserify');
         const babelify = require('babelify');
         const envify = require('envify');
-        const presetenv = require('babel-preset-env');
+        const presetenv = require('@babel/preset-env');
         const outFile = makeOutFile(filepath, '.js');
         const b = browserify(filepath, {cache: {}, packageCache: {}});
         b.transform(envify);
