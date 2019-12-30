@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+require('dotenv').config();
+
 const minimist = require('minimist');
 
 const fs = require('fs');
