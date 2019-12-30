@@ -1,6 +1,6 @@
 {
   "name": "npwb",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "No Pain Web Builder",
   "keywords": [
     "build",
@@ -20,23 +20,23 @@
     "babel-plugin-angularjs-annotate": "^0.9.0",
     "babel-preset-env": "^1.7.0",
     "babelify": "^8.0.0",
-    "browserify": "^16.2.3",
+    "browserify": "^16.5.0",
     "cpx": "^1.5.0",
     "del": "^3.0.0",
     "dotenv": "^8.2.0",
     "envify": "^4.1.0",
     "gaze": "^1.1.2",
-    "glob": "^7.1.2",
+    "glob": "^7.1.6",
     "http-server-legacy": "^0.11.1",
     "juice": "^5.2.0",
-    "less": "^3.0.4",
+    "less": "^3.10.3",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "node-sass": "^4.9.0",
-    "posthtml": "^0.11.3",
+    "node-sass": "^4.13.0",
+    "posthtml": "^0.11.6",
     "posthtml-inline-assets": "^3.0.0",
     "posthtml-minifier": "^0.1.0",
-    "uglifyify": "^5.0.0",
+    "uglifyify": "^5.0.2",
     "watchify": "^3.11.1"
   }
 }
