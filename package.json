@@ -33,7 +33,7 @@
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "node-sass": "^4.13.0",
-    "posthtml": "^0.11.6",
+    "posthtml": "^0.12.0",
     "posthtml-inline-assets": "^3.0.0",
     "posthtml-minifier": "^0.1.0",
     "uglifyify": "^5.0.2",
