@@ -1,6 +1,6 @@
 {
   "name": "npwb",
-  "version": "0.8.0",
+  "version": "1.0.0",
   "description": "No Pain Web Builder",
   "keywords": [
     "build",
@@ -18,6 +18,8 @@
   "dependencies": {
     "@babel/core": "^7.7.7",
     "@babel/preset-env": "^7.7.7",
+    "@vue/babel-helper-vue-jsx-merge-props": "^1.0.0",
+    "@vue/babel-preset-jsx": "^1.1.2",
     "babel-plugin-angularjs-annotate": "^0.10.0",
     "babelify": "^10.0.0",
     "browserify": "^16.5.0",

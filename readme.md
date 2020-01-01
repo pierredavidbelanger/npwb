@@ -1,6 +1,6 @@
 # No Pain Web Builder
 
-An easy as pie but very opinionated static web bundler.
+A very easy (but quite opinionated) static web bundler.
 
 ## Install
 
@@ -28,6 +28,12 @@ $ tree -I node_modules
 in fact, this can contains anythings `browserify` and `babelify` can compile :)
 
 `index.scss` contains standard SASS style instructions.
+
+Other useful switches:
+
+- `--vuejsx`: to compile Vue compatible `.jsx` file 
+- `--angularjs`: to auto annotate AngularJS when minifying
+- `--less *.less`: to compile LESS style instructions
 
 ### For dev time: build, watch and serve
 

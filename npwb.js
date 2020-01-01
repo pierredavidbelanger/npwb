@@ -198,40 +198,59 @@ if (argv.raw) {
 }
 
 if (argv.js) {
+
     const compile = function (filepath) {
-        const browserify = require('browserify');
-        const babelify = require('babelify');
-        const envify = require('envify');
-        const presetenv = require('@babel/preset-env');
+
         const outFile = makeOutFile(filepath, '.js');
+
+        const browserify = require('browserify');
         const b = browserify(filepath, {cache: {}, packageCache: {}});
-        b.transform(envify);
+
+        const presetenv = require('@babel/preset-env');
         const babelifyOptions = {presets: [presetenv], plugins: []};
-        if (argv.minify) {
+
+        if (argv.vuejsx) {
+            const presetjsx = require('@vue/babel-preset-jsx');
+            babelifyOptions.presets.push(presetjsx);
+        }
+
+        if (argv.minify && argv.angularjs) {
             const angularjsannotate = require('babel-plugin-angularjs-annotate');
             babelifyOptions.plugins.push(angularjsannotate);
         }
+
+        const envify = require('envify');
+        b.transform(envify);
+
+        const babelify = require('babelify');
         b.transform(babelify, babelifyOptions);
+
         if (argv.minify) {
             const uglifyify = require('uglifyify');
             b.transform(uglifyify);
             b.transform(uglifyify, {global: true});
         }
+
         if (argv.watch) {
             const watchify = require('watchify');
             b.plugin(watchify);
         }
+
         const bundle = function () {
-            const s = b.bundle().pipe(fs.createWriteStream(outFile));
+            const s = b.bundle().on('error', function (err) {
+                console.error(`[   js] unable to compile ${filepath}:`, err.toString());
+            }).pipe(fs.createWriteStream(outFile));
             if (argv.verbose) {
                 s.on('finish', function () {
                     console.log(`[   js] compiled: ${filepath} -> ${outFile}`);
                 });
             }
         };
+
         b.on('update', bundle);
         bundle();
     };
+
     const glob = require('glob');
     const pattern = path.resolve(indir, argv.js);
     glob(pattern, function (err, matches) {
