@@ -165,11 +165,19 @@ if (argv.html) {
         });
 
         if (argv.minify) {
-            posthtmlPlugins.push(require('posthtml-minifier')({
-                collapseWhitespace: true,
-                removeComments: true,
-                minifyCSS: true
-            }));
+            posthtmlPlugins.push(function (tree) {
+                const render = require('posthtml-render');
+                const parser = require('posthtml-parser');
+                const minify = require('html-minifier').minify;
+                let html = render(tree);
+                html = minify(html, {
+                    collapseWhitespace: true,
+                    removeComments: true,
+                    minifyCSS: true
+                });
+                tree = parser(html);
+                return tree;
+            });
         }
 
         const posthtml = require('posthtml')(posthtmlPlugins);
