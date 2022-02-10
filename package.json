@@ -35,7 +35,7 @@
     "less": "^3.10.3",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "node-sass": "^4.13.0",
+    "node-sass": "^7.0.0",
     "posthtml": "^0.12.0",
     "posthtml-inline-assets": "^3.0.0",
     "uglifyify": "^5.0.2",
